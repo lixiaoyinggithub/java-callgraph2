@@ -70,6 +70,8 @@ List disruptor = ['com.lmax:disruptor:3.3.7']
 dependencies {
     api apache_common, bcel, zip4j, slf4j
     testImplementation junit, log4j, disruptor
+    compile 'org.neo4j.driver:neo4j-java-driver:4.4.0'
+    implementation 'cn.hutool:hutool-all:5.8.16'
 }
 
 compileJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
