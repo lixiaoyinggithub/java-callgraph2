@@ -1,5 +1,7 @@
 package visual.chart;
 
+import visual.node.Node;
+
 import java.util.Map;
 
 /**
@@ -8,14 +10,13 @@ import java.util.Map;
  */
 public interface ChartAble {
 
-    void start();
+    void appendHeader();
 
-    void draw(Map<String, Object> source, Map<String, Object> target);
+    String draw(Node root);
 
-    void end();
+    void drawNode(Node parent, Node child);
 
-    String chooseCls(Map<String, Object> properties);
+    void appendBottom();
 
-    String getContent();
 
 }

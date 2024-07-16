@@ -1,0 +1,377 @@
+flowchart LR
+service.group.GroupServiceImpl:quitGroup-->manager.group.GroupMembershipManager:quitGroup
+manager.group.GroupMembershipManager:quitGroup-->infrastructure.tools.GroupTools:isNormalMember
+manager.group.GroupMembershipManager:quitGroup-->manager.group.GroupMembershipManager:beforeQuitGroup
+manager.group.GroupMembershipManager:beforeQuitGroup-->manager.group.GroupMembershipManager:lambda$beforeQuitGroup$10
+manager.group.GroupMembershipManager:lambda$beforeQuitGroup$10-->infrastructure.client.ImClient:delConversation
+infrastructure.client.ImClient:delConversation-->com.buz.external.api.ImService:delConversation
+manager.group.GroupMembershipManager:quitGroup-->infrastructure.client.ImClient:quitGroup
+infrastructure.client.ImClient:quitGroup-->com.buz.external.api.ImService:quitGroup
+manager.group.GroupMembershipManager:quitGroup-->manager.group.GroupMemberInfoManager:getGroupMember
+manager.group.GroupMemberInfoManager:getGroupMember-- annotation-->manager.group.GroupMemberInfoManager:getNormalGroupMemberProxy:::annotation
+manager.group.GroupMemberInfoManager:getNormalGroupMemberProxy-->entity.bo.group.QueryGroupMemberCondition:builder
+manager.group.GroupMemberInfoManager:getNormalGroupMemberProxy-->entity.bo.group.QueryGroupMemberCondition$QueryGroupMemberConditionBuilder:onlyNormal
+manager.group.GroupMemberInfoManager:getNormalGroupMemberProxy-->manager.group.GroupMemberInfoManager:queryGroupMemberFromDb
+manager.group.GroupMemberInfoManager:queryGroupMemberFromDb-->infrastructure.model.GroupMemberExample:createCriteria
+infrastructure.model.GroupMemberExample:createCriteria-->infrastructure.model.GroupMemberExample:createCriteriaInternal
+infrastructure.model.GroupMemberExample$GeneratedCriteria:addCriterion-->infrastructure.model.GroupMemberExample$Criterion:init
+manager.group.GroupMemberInfoManager:queryGroupMemberFromDb-->entity.bo.group.QueryGroupMemberCondition:getOnlyNormal
+manager.group.GroupMemberInfoManager:queryGroupMemberFromDb-->infrastructure.mapper.GroupMemberMapper:selectByExample
+manager.group.GroupMemberInfoManager:queryGroupMemberFromDb-->manager.group.GroupMemberInfoManager:lambda$queryGroupMemberFromDb$16
+manager.group.GroupMemberInfoManager:lambda$queryGroupMemberFromDb$16-->manager.group.GroupMemberInfoManager:lambda$null$15
+manager.group.GroupMemberInfoManager:queryGroupMemberFromDb-->manager.group.GroupMemberInfoManager:lambda$queryGroupMemberFromDb$17
+manager.group.GroupMemberInfoManager:getNormalGroupMemberProxy-->entity.bo.group.QueryGroupMemberCondition$QueryGroupMemberConditionBuilder:groupId
+manager.group.GroupMemberInfoManager:getNormalGroupMemberProxy-->entity.bo.group.QueryGroupMemberCondition$QueryGroupMemberConditionBuilder:userId
+manager.group.GroupMemberInfoManager:getNormalGroupMemberProxy-->entity.bo.group.QueryGroupMemberCondition$QueryGroupMemberConditionBuilder:build
+manager.group.GroupMembershipManager:quitGroup-->infrastructure.model.GroupMember:init
+manager.group.GroupMembershipManager:quitGroup-->infrastructure.mapper.GroupMemberMapper:updateByPrimaryKey
+manager.group.GroupMembershipManager:quitGroup-->manager.group.GroupMembershipManager:afterQuitGroup
+manager.group.GroupMembershipManager:afterQuitGroup-->manager.group.GroupMembershipManager:lambda$afterQuitGroup$13
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.realtimecall.CallUserManager:hangUpWhenLeaveGroup
+manager.realtimecall.CallUserManager:hangUpWhenLeaveGroup-->manager.realtimecall.CallChannelManager:getGroupChannelId
+manager.realtimecall.CallChannelManager:getGroupChannelId-->infrastructure.redis.RealTimeCallRedisHandle:getGroupChannelId
+infrastructure.redis.RealTimeCallRedisHandle:getGroupChannelId-->infrastructure.redis.support.RealTimeCallRedisKey:getKey
+infrastructure.redis.support.RealTimeCallRedisKey:getKey-->infrastructure.redis.support.RealTimeCallRedisKey:name
+infrastructure.redis.RealTimeCallRedisHandle:getGroupChannelId-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:get:::client
+manager.realtimecall.CallUserManager:hangUpWhenLeaveGroup-->manager.realtimecall.CallUserManager:filterInChannelUserIds
+manager.realtimecall.CallUserManager:filterInChannelUserIds-->infrastructure.redis.RealTimeCallRedisHandle:isUserInChannel
+infrastructure.redis.RealTimeCallRedisHandle:isUserInChannel-->infrastructure.redis.RealTimeCallRedisHandle:lambda$isUserInChannel$8
+infrastructure.redis.RealTimeCallRedisHandle:lambda$isUserInChannel$8-- client-->redis.clients.jedis.Pipeline:hexists:::client
+infrastructure.redis.RealTimeCallRedisHandle:isUserInChannel-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:executePipelined:::client
+infrastructure.redis.RealTimeCallRedisHandle:isUserInChannel-- client-->fm.lizhi.common.datastore.redis.client.RedisPipelinedRunner:execute:::client
+manager.realtimecall.CallUserManager:hangUpWhenLeaveGroup-->manager.realtimecall.handler.ChannelHandlerFactory:getChannelHandler
+manager.realtimecall.CallUserManager:hangUpWhenLeaveGroup-->manager.realtimecall.CallUserManager:lambda$hangUpWhenLeaveGroup$2
+manager.realtimecall.CallUserManager:lambda$hangUpWhenLeaveGroup$2-->manager.realtimecall.handler.IRealTimeCallHandler:hangUpCall
+manager.realtimecall.handler.IRealTimeCallHandler:hangUpCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall
+manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall-->infrastructure.tools.RealTimeCallTools:buildHungUpCallTrack
+infrastructure.tools.RealTimeCallTools:buildHungUpCallTrack-->entity.bo.tracker.realtimecall.HungUpCallTrackParams:builder
+entity.bo.tracker.realtimecall.HungUpCallTrackParams$HungUpCallTrackParamsBuilder:build-->entity.bo.tracker.realtimecall.HungUpCallTrackParams:init
+manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall-->manager.realtimecall.CallUserManager:getUserInfoInChannel
+manager.realtimecall.CallUserManager:getUserInfoInChannel-->infrastructure.redis.RealTimeCallRedisHandle:getUserInfoInChannel
+infrastructure.redis.RealTimeCallRedisHandle:getUserInfoInChannel-->com.alibaba.fastjson.JSON:parseObject
+infrastructure.redis.RealTimeCallRedisHandle:getUserInfoInChannel-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:hget:::client
+manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall-->manager.realtimecall.CallChannelManager:getChannelInfo
+manager.realtimecall.CallChannelManager:getChannelInfo-->infrastructure.redis.RealTimeCallRedisHandle:getChannelInfo
+infrastructure.redis.RealTimeCallRedisHandle:getChannelInfo-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:hgetAll:::client
+infrastructure.redis.RealTimeCallRedisHandle:getChannelInfo-->util.MapUtils:mapStrToBean
+util.MapUtils:mapStrToBean-->com.alibaba.fastjson.JSONObject:parseObject
+util.MapUtils:mapStrToBean-->com.alibaba.fastjson.JSONObject:toJSONString
+manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:afterHangUpCall
+manager.realtimecall.handler.BaseRealTimeCallHandler:afterHangUpCall-->infrastructure.tools.RealTimeCallTools:convertToPushChangeType
+manager.realtimecall.handler.BaseRealTimeCallHandler:afterHangUpCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:userCallStatusChangePush
+manager.realtimecall.handler.BaseRealTimeCallHandler:userCallStatusChangePush-->manager.push.business.RealTimeCallPushManager:pushCallUserStatusChange
+manager.push.business.RealTimeCallPushManager:pushCallUserStatusChange-->manager.push.business.RealTimeCallPushManager:lambda$pushCallUserStatusChange$3
+manager.realtimecall.handler.BaseRealTimeCallHandler:afterHangUpCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUpWrapper
+manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUpWrapper-- client-->org.redisson.api.RLock:tryLock:::client
+manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUpWrapper-->manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUp
+manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUp-->manager.realtimecall.handler.FriendRealTimeCallHandler:needEndCallAfterHangUp
+manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUp-->manager.realtimecall.handler.GroupRealTimeCallHandler:needEndCallAfterHangUp
+manager.realtimecall.handler.GroupRealTimeCallHandler:needEndCallAfterHangUp-->manager.realtimecall.handler.GroupRealTimeCallHandler:lambda$needEndCallAfterHangUp$0
+manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUpWrapper-->manager.realtimecall.handler.BaseRealTimeCallHandler:endCall
+manager.realtimecall.handler.BaseRealTimeCallHandler:endCall-->entity.context.realtimecall.EndCallContext:builder
+manager.realtimecall.handler.BaseRealTimeCallHandler:endCall-->entity.context.realtimecall.EndCallContext$EndCallContextBuilder:hangUpUserId
+manager.realtimecall.handler.BaseRealTimeCallHandler:endCall-->entity.context.realtimecall.EndCallContext$EndCallContextBuilder:channelId
+manager.realtimecall.handler.BaseRealTimeCallHandler:endCall-->entity.context.realtimecall.EndCallContext$EndCallContextBuilder:build
+manager.realtimecall.handler.BaseRealTimeCallHandler:endCall-->manager.realtimecall.CallUserManager:getChannelLeftUserIds
+manager.realtimecall.CallUserManager:getChannelLeftUserIds-->infrastructure.redis.RealTimeCallRedisHandle:getChannelLeftUserIds
+infrastructure.redis.RealTimeCallRedisHandle:getChannelLeftUserIds-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:smembers:::client
+manager.realtimecall.handler.BaseRealTimeCallHandler:endCall-->manager.realtimecall.CallUserManager:getChannelUserList
+manager.realtimecall.CallUserManager:getChannelUserList-->infrastructure.tools.RealTimeCallTools:callUserComparator
+manager.realtimecall.CallUserManager:getChannelUserList-->infrastructure.redis.RealTimeCallRedisHandle:getUserInfoListInChannel
+infrastructure.redis.RealTimeCallRedisHandle:getUserInfoListInChannel-->infrastructure.redis.RealTimeCallRedisHandle:lambda$getUserInfoListInChannel$5
+manager.realtimecall.handler.BaseRealTimeCallHandler:endCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:doEndCall
+manager.realtimecall.handler.BaseRealTimeCallHandler:doEndCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:lambda$doEndCall$5
+manager.realtimecall.handler.BaseRealTimeCallHandler:doEndCall-->infrastructure.tools.RealTimeCallTools:buildEndCallTrack
+infrastructure.tools.RealTimeCallTools:buildEndCallTrack-->entity.bo.tracker.realtimecall.EndCallTrackParams:builder
+manager.realtimecall.handler.BaseRealTimeCallHandler:doEndCall-->manager.push.business.RealTimeCallPushManager:pushCallEnd
+manager.push.business.RealTimeCallPushManager:pushCallEnd-->manager.push.business.RealTimeCallPushManager:lambda$pushCallEnd$4
+manager.realtimecall.handler.BaseRealTimeCallHandler:doEndCall-->manager.realtimecall.CallChannelManager:removeChannelInfo
+manager.realtimecall.CallChannelManager:removeChannelInfo-->infrastructure.redis.RealTimeCallRedisHandle:removeChannelInfo
+infrastructure.redis.RealTimeCallRedisHandle:removeChannelInfo-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:unlink:::client
+manager.realtimecall.handler.BaseRealTimeCallHandler:doEndCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:sendEndCallMsg
+manager.realtimecall.handler.BaseRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.handler.FriendRealTimeCallHandler:sendEndCallMsg
+manager.realtimecall.handler.FriendRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.handler.FriendRealTimeCallHandler:lambda$sendEndCallMsg$0
+manager.realtimecall.handler.FriendRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.CallImMsgManager:sendEndFriendCallMsg
+manager.realtimecall.CallImMsgManager:sendEndFriendCallMsg-->manager.realtimecall.CallImMsgManager:lambda$sendEndFriendCallMsg$1
+manager.realtimecall.CallImMsgManager:sendEndFriendCallMsg-->manager.realtimecall.CallImMsgManager:privateMsgLanguageAdapter
+manager.realtimecall.CallImMsgManager:privateMsgLanguageAdapter-->manager.realtimecall.CallImMsgManager:buildMsgLangAdapter
+manager.realtimecall.CallImMsgManager:privateMsgLanguageAdapter-->manager.user.UserExtraInfoManager:getUserLanguageMap
+manager.user.UserExtraInfoManager:getUserLanguageMap-->manager.user.UserExtraInfoManager:getUserExtraInfoByUserIds
+manager.user.UserExtraInfoManager:getUserExtraInfoByUserIds-->com.google.common.collect.Lists:newArrayList
+manager.user.UserExtraInfoManager:getUserExtraInfoByUserIds-->infrastructure.mapper.UserExtraInfoMapper:selectByExample
+manager.user.UserExtraInfoManager:getUserExtraInfoByUserIds-->infrastructure.model.UserExtraInfoExample:createCriteria
+infrastructure.model.UserExtraInfoExample:createCriteria-->infrastructure.model.UserExtraInfoExample:createCriteriaInternal
+infrastructure.model.UserExtraInfoExample$GeneratedCriteria:addCriterion-->infrastructure.model.UserExtraInfoExample$Criterion:init
+manager.user.UserExtraInfoManager:getUserLanguageMap-->manager.user.UserExtraInfoManager:lambda$getUserLanguageMap$1
+manager.realtimecall.handler.FriendRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.CallImMsgManager:sendMissedFriendCallMsg
+manager.realtimecall.CallImMsgManager:sendMissedFriendCallMsg-->manager.realtimecall.CallImMsgManager:buildPrivateOfflinePushParams
+manager.realtimecall.CallImMsgManager:buildPrivateOfflinePushParams-->infrastructure.tools.ClientRouterTools:buildPrivateChat
+manager.realtimecall.CallImMsgManager:sendMissedFriendCallMsg-->entity.push.OfflinePushConfig:contentConfig
+manager.realtimecall.CallImMsgManager:sendMissedFriendCallMsg-->manager.realtimecall.CallImMsgManager:getMissedVoiceCallMsg
+manager.realtimecall.CallImMsgManager:sendMissedFriendCallMsg-->manager.realtimecall.CallImMsgManager:buildDefaultPrivateMsg
+manager.realtimecall.CallImMsgManager:buildDefaultPrivateMsg-->infrastructure.convert.UserInfoTransform:toImUserInfo
+manager.realtimecall.CallImMsgManager:sendMissedFriendCallMsg-->infrastructure.client.ImClient:sendPrivateMsg
+infrastructure.client.ImClient:sendPrivateMsg-->com.buz.external.api.ImService:sendPrivateMsg
+manager.realtimecall.handler.BaseRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.handler.GroupRealTimeCallHandler:sendEndCallMsg
+manager.realtimecall.handler.GroupRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.CallImMsgManager:sendEndGroupCallMsg
+manager.realtimecall.CallImMsgManager:sendEndGroupCallMsg-->util.DateUtils:betweenFormat
+manager.realtimecall.CallImMsgManager:sendEndGroupCallMsg-->manager.realtimecall.CallImMsgManager:buildDefaultGroupMsg
+manager.realtimecall.CallImMsgManager:sendEndGroupCallMsg-->manager.realtimecall.CallImMsgManager:buildGroupOfflinePushParams
+manager.realtimecall.CallImMsgManager:buildGroupOfflinePushParams-->infrastructure.tools.ClientRouterTools:buildGroupChat
+manager.realtimecall.handler.GroupRealTimeCallHandler:sendEndCallMsg-->util.CollUtils:newArrays
+manager.realtimecall.handler.GroupRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.handler.GroupRealTimeCallHandler:lambda$sendEndCallMsg$2
+manager.realtimecall.handler.GroupRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.CallImMsgManager:sendMissedGroupCallMsg
+manager.realtimecall.handler.GroupRealTimeCallHandler:sendEndCallMsg-->manager.realtimecall.handler.GroupRealTimeCallHandler:lambda$sendEndCallMsg$1
+manager.realtimecall.handler.BaseRealTimeCallHandler:doEndCall-->manager.realtimecall.CallUserManager:batchRemoveUserCallStatus
+manager.realtimecall.CallUserManager:batchRemoveUserCallStatus-->infrastructure.redis.RealTimeCallRedisHandle:batchRemoveUserCallStatus
+infrastructure.redis.RealTimeCallRedisHandle:batchRemoveUserCallStatus-- client-->fm.lizhi.common.datastore.redis.client.RedisPipelinedRunner:execute:::client
+infrastructure.redis.RealTimeCallRedisHandle:batchRemoveUserCallStatus-->infrastructure.redis.RealTimeCallRedisHandle:lambda$batchRemoveUserCallStatus$10
+infrastructure.redis.RealTimeCallRedisHandle:lambda$batchRemoveUserCallStatus$10-- client-->redis.clients.jedis.Pipeline:eval:::client
+manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUpWrapper-- client-->org.redisson.api.RLock:unlock:::client
+manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUpWrapper-->infrastructure.redis.RealTimeCallRedisHandle:getChannelLifeCycleLock
+infrastructure.redis.RealTimeCallRedisHandle:getChannelLifeCycleLock-->infrastructure.redis.RealTimeCallRedisHandle:channelLifeCycleLockKey
+infrastructure.redis.RealTimeCallRedisHandle:getChannelLifeCycleLock-- client-->org.redisson.api.RedissonClient:getReadWriteLock:::client
+manager.realtimecall.handler.BaseRealTimeCallHandler:needEndCallAfterHangUpWrapper-- client-->org.redisson.api.RReadWriteLock:writeLock:::client
+manager.realtimecall.handler.BaseRealTimeCallHandler:afterHangUpCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:cancelInviteAfterBeHungUp
+manager.realtimecall.handler.BaseRealTimeCallHandler:cancelInviteAfterBeHungUp-->manager.push.business.RealTimeCallPushManager:pushCancelCallInvite
+manager.push.business.RealTimeCallPushManager:pushCancelCallInvite-->manager.push.business.RealTimeCallPushManager:lambda$pushCancelCallInvite$2
+manager.push.business.RealTimeCallPushManager:lambda$pushCancelCallInvite$2-->manager.push.offline.OfflinePushParamsTools:buildOfflineParams
+manager.push.offline.OfflinePushParamsTools:buildOfflineParams-->manager.push.offline.OfflinePushParamsTools:doBuildOfflinePushAppData
+manager.push.offline.OfflinePushParamsTools:doBuildOfflinePushAppData-->entity.push.OfflinePushAppData:builder
+manager.push.offline.OfflinePushParamsTools:doBuildOfflinePushAppData-->infrastructure.convert.UserInfoTransform:toSimpleUser
+manager.push.offline.OfflinePushParamsTools:doBuildOfflinePushAppData-->entity.push.PushTextConfig:getReplaceInfo
+manager.push.offline.OfflinePushParamsTools:doBuildOfflinePushAppData-->infrastructure.convert.GroupTransform:toSimpleGroupBaseInfo
+manager.push.business.RealTimeCallPushManager:lambda$pushCancelCallInvite$2-->manager.push.offline.OfflinePushContextTools:initPushContext
+manager.push.offline.OfflinePushContextTools:initPushContext-->infrastructure.convert.PushTransform:toOfflinePushContext
+manager.push.offline.OfflinePushContextTools:initPushContext-->manager.push.offline.OfflinePushContextTools:initSenderAndGroupInfo
+manager.push.offline.OfflinePushContextTools:initSenderAndGroupInfo-->manager.group.GroupInfoManager:getGroupBaseInfo
+manager.group.GroupInfoManager:getGroupBaseInfo-->manager.group.GroupInfoManager:buildGroupBaseInfo
+manager.group.GroupInfoManager:buildGroupBaseInfo-->manager.group.GroupMemberInfoManager:getGroupPortraitMembersInfoList
+manager.group.GroupMemberInfoManager:getGroupPortraitMembersInfoList-- annotation-->manager.group.GroupMemberInfoManager:getGroupPortraitMembers:::annotation
+manager.group.GroupMemberInfoManager:getGroupPortraitMembersInfoList-->infrastructure.tools.GroupTools:sortGroupPortraitMembers
+infrastructure.tools.GroupTools:sortGroupPortraitMembers-->infrastructure.tools.GroupTools:lambda$sortGroupPortraitMembers$3
+manager.group.GroupInfoManager:buildGroupBaseInfo-->infrastructure.convert.GroupTransform:toGroupBaseInfo
+manager.group.GroupInfoManager:buildGroupBaseInfo-- annotation-->manager.group.GroupMemberInfoManager:getGroupMemberCount:::annotation
+manager.group.GroupInfoManager:buildGroupBaseInfo-->manager.group.GroupInfoManager:getMaxGroupMemberNumByGroup
+manager.group.GroupInfoManager:getMaxGroupMemberNumByGroup-->manager.group.GroupInfoManager:lambda$getMaxGroupMemberNumByGroup$9
+manager.group.GroupInfoManager:getMaxGroupMemberNumByGroup-->manager.group.GroupInfoManager:lambda$getMaxGroupMemberNumByGroup$10
+manager.push.offline.OfflinePushContextTools:initPushContext-->manager.push.offline.OfflinePushContextTools:verifyPushParams
+manager.push.offline.OfflinePushContextTools:initPushContext-->manager.push.offline.OfflinePushContextTools:initTitleAndContent
+manager.push.offline.OfflinePushContextTools:initTitleAndContent-->manager.push.offline.OfflinePushContextTools:buildPushContent
+manager.push.offline.OfflinePushContextTools:buildPushContent-->manager.push.offline.OfflinePushContextTools:getPushTextConfig
+manager.push.offline.OfflinePushContextTools:getPushTextConfig-->infrastructure.tools.UserTools:getUserName
+manager.push.offline.OfflinePushContextTools:getPushTextConfig-->manager.push.offline.OfflinePushContextTools:fillI18nTextConfig
+manager.push.offline.OfflinePushContextTools:initTitleAndContent-->manager.push.offline.OfflinePushContextTools:buildPushTitle
+manager.push.offline.OfflinePushContextTools:initPushContext-->manager.push.offline.OfflinePushContextTools:fillPushConfig
+manager.push.offline.OfflinePushContextTools:fillPushConfig-->manager.push.offline.OfflinePushFactory:getConfig
+manager.push.business.RealTimeCallPushManager:lambda$pushCancelCallInvite$2-->entity.context.OfflinePushBuildParams:builder
+manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall-->manager.realtimecall.handler.BaseRealTimeCallHandler:getCallChannelType
+manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall-->manager.realtimecall.CallUserManager:clearHangUpUserCallStatus
+manager.realtimecall.CallUserManager:clearHangUpUserCallStatus-->infrastructure.redis.RealTimeCallRedisHandle:removeAndRecordLeftUser
+infrastructure.redis.RealTimeCallRedisHandle:removeAndRecordLeftUser-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:eval:::client
+infrastructure.redis.RealTimeCallRedisHandle:removeAndRecordLeftUser-->infrastructure.redis.lua.RealTimeCallLuaTools:removeAndRecordLeftUser
+infrastructure.redis.lua.RealTimeCallLuaTools:removeAndRecordLeftUser-->infrastructure.redis.lua.LuaTools:buildLua
+manager.realtimecall.CallUserManager:clearHangUpUserCallStatus-->infrastructure.redis.RealTimeCallRedisHandle:removeUserCallStatus
+infrastructure.redis.RealTimeCallRedisHandle:removeUserCallStatus-->infrastructure.redis.lua.RealTimeCallLuaTools:removeUserCallStatus
+manager.realtimecall.CallUserManager:clearHangUpUserCallStatus-->manager.push.PushCompensationManager:removeBizPushCompensation
+manager.push.PushCompensationManager:removeBizPushCompensation-->infrastructure.redis.PushRedisHandle:removeBizPushCompensation
+infrastructure.redis.PushRedisHandle:removeBizPushCompensation-- client-->fm.lizhi.common.datastore.redis.client.RedisPipelinedRunner:execute:::client
+infrastructure.redis.PushRedisHandle:removeBizPushCompensation-->infrastructure.redis.PushRedisHandle:lambda$removeBizPushCompensation$5
+infrastructure.redis.PushRedisHandle:lambda$removeBizPushCompensation$5-->infrastructure.redis.PushRedisHandle:getPushCompensationCacheKey
+infrastructure.redis.PushRedisHandle:getPushCompensationCacheKey-->infrastructure.redis.support.PushCacheKey:getKey
+infrastructure.redis.support.PushCacheKey:getKey-->infrastructure.redis.support.PushCacheKey:name
+infrastructure.redis.PushRedisHandle:lambda$removeBizPushCompensation$5-- client-->redis.clients.jedis.Pipeline:unlink:::client
+manager.realtimecall.CallUserManager:clearHangUpUserCallStatus-->infrastructure.redis.RealTimeCallRedisHandle:removeUserFromChannel
+infrastructure.redis.RealTimeCallRedisHandle:removeUserFromChannel-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:hdel:::client
+manager.realtimecall.CallUserManager:clearHangUpUserCallStatus-->manager.heartbeat.HeartbeatPoolManager:giveUpHeartbeat
+manager.heartbeat.HeartbeatPoolManager:giveUpHeartbeat-->enums.CoreEnumsGather$HeartbeatEnum:getEnumName
+enums.CoreEnumsGather$HeartbeatEnum:getEnumName-->enums.CoreEnumsGather$HeartbeatEnum:values
+enums.CoreEnumsGather$HeartbeatEnum:getEnumName-->enums.CoreEnumsGather$HeartbeatEnum:getKey
+enums.CoreEnumsGather$HeartbeatEnum:getKey-->enums.CoreEnumsGather$HeartbeatEnum:getPrefix
+enums.CoreEnumsGather$HeartbeatEnum:getPrefix-->infrastructure.redis.support.TestEnvSupport:getPreEnvTag
+manager.heartbeat.HeartbeatPoolManager:giveUpHeartbeat-->infrastructure.tools.HeartbeatTools:spliceHeartbeatId
+manager.heartbeat.HeartbeatPoolManager:giveUpHeartbeat-->fm.zhiya.heartbeat.impl.DefaultHeartbeatListener:giveUpHeartbeat
+manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall-->manager.TrackerManager:reportEvent
+manager.TrackerManager:reportEvent-->com.buz.external.api.TrackerService:reportEvent
+manager.realtimecall.handler.BaseRealTimeCallHandler:hangUpCall-->infrastructure.tools.RealTimeCallTools:fillHungUpCallTrack
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupMemberInfoManager:getGroupMemberCountFromDb
+manager.group.GroupMemberInfoManager:getGroupMemberCountFromDb-->infrastructure.mapper.GroupMemberMapper:countByExample
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-- annotation-->manager.group.GroupLifecycleManager:dismissGroup:::annotation
+manager.group.GroupLifecycleManager:dismissGroup-->infrastructure.client.ImClient:dismissGroup
+infrastructure.client.ImClient:dismissGroup-->com.buz.external.api.ImService:dismissGroup
+manager.group.GroupLifecycleManager:dismissGroup-->infrastructure.mapper.GroupInfoMapper:updateByPrimaryKey
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupPortraitManager:sendMqCreatePortrait
+manager.group.GroupPortraitManager:sendMqCreatePortrait-->infrastructure.mq.ProducerHandle:sendMqCreatePortrait
+infrastructure.mq.ProducerHandle:sendMqCreatePortrait-->com.buz.common.mq.MqProducer:send
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupMembershipManager:transferOwner
+manager.group.GroupMembershipManager:transferOwner-->manager.group.GroupMemberInfoManager:getTopNGroupMembers
+manager.group.GroupMembershipManager:transferOwner-->manager.group.GroupMemberInfoManager:updateGroupMember
+manager.group.GroupMemberInfoManager:updateGroupMember-->infrastructure.mapper.GroupMemberMapper:updateByExample
+manager.group.GroupMembershipManager:transferOwner-- annotation-->manager.group.GroupInfoManager:updateGroupInfo:::annotation
+manager.group.GroupInfoManager:updateGroupInfo-->manager.group.GroupInfoManager:checkUpdateGroupPermission
+manager.group.GroupInfoManager:checkUpdateGroupPermission-->infrastructure.tools.GroupTools:isAdmin
+manager.group.GroupInfoManager:updateGroupInfo-->io.shardingsphere.core.routing.router.masterslave.MasterSlaveRouteOnceVisitedHolder:routeMaster
+manager.group.GroupInfoManager:updateGroupInfo-->infrastructure.client.ImClient:updateGroupInfo
+infrastructure.client.ImClient:updateGroupInfo-->com.buz.external.api.ImService:updateGroupInfo
+manager.group.GroupInfoManager:updateGroupInfo-->manager.group.GroupInfoManager:lambda$updateGroupInfo$6
+manager.group.GroupInfoManager:updateGroupInfo-->manager.group.GroupInfoManager:getGroupInfo
+manager.group.GroupInfoManager:getGroupInfo-- annotation-->manager.group.GroupInfoManager:getGroupInfoProxy:::annotation
+manager.group.GroupInfoManager:getGroupInfoProxy-->manager.group.GroupInfoManager:getGroupInfoBatch
+infrastructure.model.GroupInfoExample$GeneratedCriteria:addCriterion-->infrastructure.model.GroupInfoExample$Criterion:init
+manager.group.GroupInfoManager:getGroupInfoBatch-->infrastructure.model.GroupInfoExample:createCriteria
+infrastructure.model.GroupInfoExample:createCriteria-->infrastructure.model.GroupInfoExample:createCriteriaInternal
+manager.group.GroupInfoManager:getGroupInfoBatch-->manager.group.GroupInfoManager:lambda$getGroupInfoBatch$0
+manager.group.GroupInfoManager:getGroupInfoBatch-->infrastructure.mapper.GroupInfoMapper:selectByExample
+manager.group.GroupInfoManager:updateGroupInfo-->manager.ImMsgManager:sendUpdateGroupNameCenterHintMsg
+manager.ImMsgManager:sendUpdateGroupNameCenterHintMsg-->manager.ImMsgManager:getCenterHintGroupInfo
+manager.ImMsgManager:getCenterHintGroupInfo-->cn.hutool.json.JSONUtil:toJsonStr
+manager.ImMsgManager:sendUpdateGroupNameCenterHintMsg-->manager.ImMsgManager:getCenterHintUserInfo
+manager.ImMsgManager:sendUpdateGroupNameCenterHintMsg-->config.I18nConfigAdapter:getConfig
+config.I18nConfigAdapter:getConfig-->config.I18nConfigAdapter:getUserId
+config.I18nConfigAdapter:getConfig-->config.I18nConfigAdapter:getConfig
+config.I18nConfigAdapter:getConfig-->manager.user.UserExtraInfoManager:getByUserId
+manager.user.UserExtraInfoManager:getByUserId-->infrastructure.convert.UserInfoTransform:fromUserExtraInfo
+manager.user.UserExtraInfoManager:getByUserId-->manager.user.UserExtraInfoManager:getUserExtraInfo
+manager.user.UserExtraInfoManager:getUserExtraInfo-->infrastructure.mapper.UserExtraInfoMapper:selectOne
+manager.user.UserExtraInfoManager:getByUserId-->manager.user.UserExtraInfoManager:getUserCountryCode
+manager.user.UserExtraInfoManager:getUserCountryCode-->manager.user.UserExtraInfoManager:lambda$getUserCountryCode$0
+config.I18nConfigAdapter:getConfig-->config.I18nConfigAdapter:getConfig
+config.I18nConfigAdapter:getConfig-->fm.lizhi.ocean.i18n.util.I18nTextUtils:loadConfig
+config.I18nConfigAdapter:getConfig-->config.I18nConfigAdapter:adaptInputLanguageCode
+manager.ImMsgManager:sendUpdateGroupNameCenterHintMsg-->com.google.common.collect.Lists:newArrayList
+manager.ImMsgManager:sendUpdateGroupNameCenterHintMsg-->manager.user.UserManager:getUserDTOByIdWithoutStatus
+manager.user.UserManager:getUserDTOByIdWithoutStatus-->manager.user.UserManager:fullUserInfoDTO
+manager.user.UserManager:fullUserInfoDTO-->manager.user.UserManager:lambda$fullUserInfoDTO$3
+manager.user.UserManager:fullUserInfoDTO-->manager.user.UserOnlineStatusManager:getUserQuietModeMap
+manager.user.UserOnlineStatusManager:getUserQuietModeMap-->infrastructure.redis.UserRedisHandle:getUserQuietModeMap
+infrastructure.redis.UserRedisHandle:getUserQuietModeMap-- client-->fm.lizhi.common.datastore.redis.client.RedisPipelinedRunner:execute:::client
+infrastructure.redis.UserRedisHandle:getUserQuietModeMap-->infrastructure.redis.UserRedisHandle:lambda$getUserQuietModeMap$0
+infrastructure.redis.UserRedisHandle:lambda$getUserQuietModeMap$0-- client-->redis.clients.jedis.Pipeline:hgetAll:::client
+infrastructure.redis.UserRedisHandle:lambda$getUserQuietModeMap$0-->infrastructure.redis.UserRedisHandle:userQuiteModeCacheKey
+infrastructure.redis.UserRedisHandle:userQuiteModeCacheKey-->infrastructure.redis.support.UserRedisKey:getKey
+infrastructure.redis.support.UserRedisKey:getKey-->infrastructure.redis.support.UserRedisKey:name
+manager.user.UserManager:getUserDTOByIdWithoutStatus-->infrastructure.tools.UserTools:isAbnormalUser
+manager.user.UserManager:getUserDTOByIdWithoutStatus-->manager.user.UserManager:getUserById
+manager.user.UserManager:getUserById-->infrastructure.dao.UserDAO:getUserById
+infrastructure.dao.UserDAO:getUserById-->infrastructure.mapper.UserInfoMapper:selectByPrimaryKey
+manager.user.UserManager:getUserDTOByIdWithoutStatus-->infrastructure.convert.UserInfoTransform:toUserInfoDTOtipMsg
+manager.ImMsgManager:sendUpdateGroupNameCenterHintMsg-->com.alibaba.fastjson.JSON:toJSONString
+manager.ImMsgManager:sendUpdateGroupNameCenterHintMsg-->infrastructure.client.ImClient:sendGroupMsg
+infrastructure.client.ImClient:sendGroupMsg-->com.buz.external.api.ImService:sendGroupMsgAsync
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupMembershipManager:lambda$null$11
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupInfoManager:pushGroupChange
+manager.group.GroupInfoManager:pushGroupChange-->manager.group.GroupMemberInfoManager:getNormalMemberUserIds
+manager.group.GroupMemberInfoManager:getNormalMemberUserIds-->manager.group.GroupMemberInfoManager:getNormalGroupMembers
+manager.group.GroupMemberInfoManager:getNormalGroupMembers-->infrastructure.mapper.GroupMemberMapper:selectMany
+manager.group.GroupInfoManager:pushGroupChange-->manager.group.GroupInfoManager:lambda$pushGroupChange$7
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.push.business.DataChangePushManager:pushDataChange
+manager.push.business.DataChangePushManager:pushDataChange-->manager.push.business.DataChangePushManager:lambda$pushDataChange$1
+manager.push.business.DataChangePushManager:lambda$pushDataChange$1-->infrastructure.client.PushClient:onlinePushToClient
+infrastructure.client.PushClient:onlinePushToClient-->infrastructure.client.PushClient:onlinePushToClient
+infrastructure.client.PushClient:onlinePushToClient-->com.buz.external.api.PushService:onlinePushToClient
+infrastructure.client.PushClient:onlinePushToClient-->fm.lizhi.commons.service.client.pojo.Result:rCode
+infrastructure.client.PushClient:onlinePushToClient-->infrastructure.client.PushClient:buildPushCompensationParams
+infrastructure.client.PushClient:buildPushCompensationParams-->manager.push.PushCompensationManager:getMsgValidSeconds
+manager.push.PushCompensationManager:getMsgValidSeconds-->manager.push.PushCompensationManager:lambda$getMsgValidSeconds$3
+manager.push.PushCompensationManager:getMsgValidSeconds-->cn.hutool.json.JSONUtil:toList
+manager.push.PushCompensationManager:getMsgValidSeconds-->manager.push.PushCompensationManager:lambda$getMsgValidSeconds$0
+manager.push.PushCompensationManager:getMsgValidSeconds-->manager.push.PushCompensationManager:lambda$getMsgValidSeconds$2
+manager.push.PushCompensationManager:getMsgValidSeconds-->manager.push.PushCompensationManager:lambda$getMsgValidSeconds$1
+infrastructure.client.PushClient:onlinePushToClient-->fm.lizhi.commons.service.client.pojo.Result:target
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupMembershipManager:lambda$null$12
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupMembershipManager:pushLargeGroupChange
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupMemberConfigManager:removeGroupMemberConfig
+manager.group.GroupMemberConfigManager:removeGroupMemberConfig-->infrastructure.mapper.GroupMemberConfigMapper:deleteByExample
+infrastructure.model.GroupMemberConfigExample$GeneratedCriteria:addCriterion-->infrastructure.model.GroupMemberConfigExample$Criterion:init
+manager.group.GroupMemberConfigManager:removeGroupMemberConfig-->infrastructure.model.GroupMemberConfigExample:createCriteria
+infrastructure.model.GroupMemberConfigExample:createCriteria-->infrastructure.model.GroupMemberConfigExample:createCriteriaInternal
+manager.group.GroupMemberConfigManager:removeGroupMemberConfig-->manager.group.GroupJetCacheManager:invalidateGroupMemberConfig
+manager.group.GroupJetCacheManager:invalidateGroupMemberConfig-->manager.group.GroupJetCacheManager:lambda$invalidateGroupMemberConfig$0
+manager.group.GroupMembershipManager:lambda$afterQuitGroup$13-->manager.group.GroupMembershipManager:updateOnlineMembersAfterJoinOrExit
+manager.group.GroupMembershipManager:updateOnlineMembersAfterJoinOrExit-->manager.user.UserOnlineStatusManager:getBatchOnlineTime
+manager.user.UserOnlineStatusManager:getBatchOnlineTime-->infrastructure.redis.UserOnlineRedisHandle:getOnlineStatusMap
+infrastructure.redis.UserOnlineRedisHandle:getOnlineStatusMap-- client-->fm.lizhi.common.datastore.redis.client.RedisPipelinedRunner:execute:::client
+infrastructure.redis.UserOnlineRedisHandle:getOnlineStatusMap-->infrastructure.redis.UserOnlineRedisHandle:lambda$getOnlineStatusMap$1
+infrastructure.redis.UserOnlineRedisHandle:lambda$getOnlineStatusMap$1-->infrastructure.redis.UserOnlineRedisHandle:lambda$null$0
+infrastructure.redis.UserOnlineRedisHandle:lambda$null$0-->infrastructure.redis.UserOnlineRedisHandle:getOnlineStatusKey
+infrastructure.redis.UserOnlineRedisHandle:getOnlineStatusKey-->infrastructure.tools.UserTools:getUserOnlineHash
+infrastructure.redis.UserOnlineRedisHandle:getOnlineStatusKey-->infrastructure.redis.support.OnlineRedisKey:getKey
+infrastructure.redis.support.OnlineRedisKey:getKey-->infrastructure.redis.support.OnlineRedisKey:name
+infrastructure.redis.UserOnlineRedisHandle:lambda$null$0-- client-->redis.clients.jedis.Pipeline:zscore:::client
+infrastructure.redis.UserOnlineRedisHandle:getOnlineStatusMap-->infrastructure.redis.UserOnlineRedisHandle:lambda$getOnlineStatusMap$2
+manager.group.GroupMembershipManager:updateOnlineMembersAfterJoinOrExit-->manager.group.GroupOnlineManager:pushOnlineGroupMemberChange
+manager.group.GroupOnlineManager:pushOnlineGroupMemberChange-->manager.group.GroupOnlineManager:groupOnlineInfo
+manager.group.GroupOnlineManager:groupOnlineInfo-->manager.group.GroupOnlineManager:getTopGroupOnlineUsers
+manager.group.GroupOnlineManager:getTopGroupOnlineUsers-->infrastructure.redis.GroupRedisHandle:getGroupOnlineUserIds
+infrastructure.redis.GroupRedisHandle:getGroupOnlineUserIds-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:zrevrangeByScore:::client
+manager.group.GroupOnlineManager:getTopGroupOnlineUsers-->infrastructure.redis.GroupRedisHandle:getGroupOnlineUserInfo
+infrastructure.redis.GroupRedisHandle:getGroupOnlineUserInfo-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:hmget:::client
+infrastructure.redis.GroupRedisHandle:getGroupOnlineUserInfo-->infrastructure.redis.GroupRedisHandle:lambda$getGroupOnlineUserInfo$10
+infrastructure.redis.GroupRedisHandle:getGroupOnlineUserInfo-->infrastructure.redis.GroupRedisHandle:lambda$getGroupOnlineUserInfo$11
+manager.group.GroupOnlineManager:getTopGroupOnlineUsers-->manager.user.UserManager:getUserDTOListById
+manager.user.UserManager:getUserDTOListById-->manager.user.UserManager:lambda$getUserDTOListById$0
+manager.user.UserManager:getUserDTOListById-->infrastructure.convert.UserInfoTransform:toUserInfoDTO
+manager.group.GroupOnlineManager:getTopGroupOnlineUsers-->infrastructure.convert.GroupMemberTransform:userInfoDtoConvertGroupOnlineUserInfo
+manager.group.GroupOnlineManager:groupOnlineInfo-->manager.group.GroupOnlineManager:getGroupOnlineUserCount
+manager.group.GroupOnlineManager:getGroupOnlineUserCount-->infrastructure.redis.GroupRedisHandle:getGroupOnlineUserCount
+infrastructure.redis.GroupRedisHandle:getGroupOnlineUserCount-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:zcard:::client
+manager.group.GroupOnlineManager:pushOnlineGroupMemberChange-->manager.group.GroupOnlineManager:pushToInGroupPageUsers
+manager.group.GroupOnlineManager:pushToInGroupPageUsers-->manager.group.GroupOnlineManager:getInGroupPageUserIds
+manager.group.GroupOnlineManager:getInGroupPageUserIds-->infrastructure.redis.GroupRedisHandle:getInGroupPageUsers
+infrastructure.redis.GroupRedisHandle:getInGroupPageUsers-- client-->fm.lizhi.common.datastore.redis.client.RedisPipelinedRunner:execute:::client
+infrastructure.redis.GroupRedisHandle:getInGroupPageUsers-->infrastructure.redis.GroupRedisHandle:lambda$getInGroupPageUsers$1
+infrastructure.redis.GroupRedisHandle:lambda$getInGroupPageUsers$1-- client-->redis.clients.jedis.Pipeline:zrange:::client
+infrastructure.redis.GroupRedisHandle:getInGroupPageUsers-->com.alibaba.fastjson.JSONArray:parseArray
+manager.group.GroupOnlineManager:pushToInGroupPageUsers-->manager.push.business.GroupPushManager:pushOnlineMemberChangeByBroadcast
+manager.push.business.GroupPushManager:pushOnlineMemberChangeByBroadcast-->infrastructure.client.PushClient:broadcastMessage
+infrastructure.client.PushClient:broadcastMessage-->infrastructure.client.PushClient:buildBroadcastCompensationParams
+infrastructure.client.PushClient:broadcastMessage-->com.buz.external.api.PushService:broadcastMessage
+manager.push.business.GroupPushManager:pushOnlineMemberChangeByBroadcast-->manager.push.business.GroupPushManager:buildGroupOnlineMemberPush
+manager.push.business.GroupPushManager:buildGroupOnlineMemberPush-->manager.push.business.GroupPushManager:lambda$buildGroupOnlineMemberPush$0
+manager.push.business.GroupPushManager:buildGroupOnlineMemberPush-->entity.push.pushExtra.group.GroupOnlineMemberPushData:builder
+manager.group.GroupOnlineManager:pushToInGroupPageUsers-->manager.group.GroupOnlineManager:lambda$pushToInGroupPageUsers$5
+manager.group.GroupOnlineManager:lambda$pushToInGroupPageUsers$5-->manager.push.business.GroupPushManager:pushOnlineMemberChange
+manager.group.GroupMembershipManager:updateOnlineMembersAfterJoinOrExit-->manager.group.GroupMembershipManager:lambda$updateOnlineMembersAfterJoinOrExit$14
+manager.group.GroupMembershipManager:updateOnlineMembersAfterJoinOrExit-->manager.group.GroupOnlineManager:updateGroupOnlineMember
+manager.group.GroupOnlineManager:updateGroupOnlineMember-->infrastructure.redis.GroupRedisHandle:addGroupOnlineUser
+infrastructure.redis.GroupRedisHandle:addGroupOnlineUser-->infrastructure.redis.GroupRedisHandle:lambda$addGroupOnlineUser$6
+infrastructure.redis.GroupRedisHandle:lambda$addGroupOnlineUser$6-->infrastructure.redis.GroupRedisHandle:getGroupOnlineUserSetKey
+infrastructure.redis.GroupRedisHandle:getGroupOnlineUserSetKey-->infrastructure.redis.support.GroupRedisKey:getKey
+infrastructure.redis.support.GroupRedisKey:getKey-->infrastructure.redis.support.GroupRedisKey:name
+infrastructure.redis.GroupRedisHandle:lambda$addGroupOnlineUser$6-->infrastructure.redis.GroupRedisHandle:lambda$null$4
+infrastructure.redis.GroupRedisHandle:lambda$addGroupOnlineUser$6-->infrastructure.redis.GroupRedisHandle:lambda$null$3
+infrastructure.redis.GroupRedisHandle:lambda$addGroupOnlineUser$6-- client-->redis.clients.jedis.Pipeline:zadd:::client
+infrastructure.redis.GroupRedisHandle:lambda$addGroupOnlineUser$6-->infrastructure.redis.GroupRedisHandle:lambda$null$5
+infrastructure.redis.GroupRedisHandle:lambda$addGroupOnlineUser$6-- client-->redis.clients.jedis.Pipeline:expire:::client
+infrastructure.redis.GroupRedisHandle:lambda$addGroupOnlineUser$6-- client-->redis.clients.jedis.Pipeline:hmset:::client
+infrastructure.redis.GroupRedisHandle:addGroupOnlineUser-- client-->fm.lizhi.common.datastore.redis.client.RedisPipelinedRunner:execute:::client
+manager.group.GroupOnlineManager:updateGroupOnlineMember-->infrastructure.convert.GroupMemberTransform:convertGroupOnlineUserInfo
+manager.group.GroupOnlineManager:updateGroupOnlineMember-->manager.user.UserManager:getUserListById
+manager.user.UserManager:getUserListById-->infrastructure.dao.UserDAO:commonQueryUserInfoList
+infrastructure.model.UserInfoExample$GeneratedCriteria:addCriterion-->infrastructure.model.UserInfoExample$Criterion:init
+infrastructure.dao.UserDAO:commonQueryUserInfoList-->infrastructure.model.UserInfoExample:createCriteria
+infrastructure.model.UserInfoExample:createCriteria-->infrastructure.model.UserInfoExample:createCriteriaInternal
+infrastructure.dao.UserDAO:commonQueryUserInfoList-->infrastructure.mapper.UserInfoMapper:selectByExample
+manager.user.UserManager:getUserListById-->util.PortraitUtils:buildFullPortrait
+manager.group.GroupOnlineManager:updateGroupOnlineMember-->manager.group.GroupOnlineManager:lambda$updateGroupOnlineMember$2
+manager.group.GroupOnlineManager:updateGroupOnlineMember-->infrastructure.redis.GroupRedisHandle:removeGroupOnlineUser
+infrastructure.redis.GroupRedisHandle:removeGroupOnlineUser-->infrastructure.redis.GroupRedisHandle:lambda$removeGroupOnlineUser$9
+infrastructure.redis.GroupRedisHandle:lambda$removeGroupOnlineUser$9-->infrastructure.redis.GroupRedisHandle:lambda$null$8
+infrastructure.redis.GroupRedisHandle:lambda$removeGroupOnlineUser$9-- client-->redis.clients.jedis.Pipeline:zrem:::client
+infrastructure.redis.GroupRedisHandle:lambda$removeGroupOnlineUser$9-- client-->redis.clients.jedis.Pipeline:hdel:::client
+manager.group.GroupMembershipManager:afterQuitGroup-->manager.group.GroupInfoManager:isLargeGroup
+manager.group.GroupInfoManager:isLargeGroup-->manager.group.GroupInfoManager:lambda$isLargeGroup$11
+manager.group.GroupMembershipManager:afterQuitGroup-->com.buz.common.tool.thread.BuzExecutor:execute
+manager.group.GroupMembershipManager:afterQuitGroup-->manager.group.GroupJetCacheManager:invalidateCacheAfterMemberChange
+manager.group.GroupJetCacheManager:invalidateCacheAfterMemberChange-->manager.group.GroupJetCacheManager:invalidateGroupMember
+manager.group.GroupJetCacheManager:invalidateGroupMember-->com.alicp.jetcache.Cache:removeAll
+manager.group.GroupJetCacheManager:invalidateGroupMember-->manager.group.GroupJetCacheManager:lambda$invalidateGroupMember$1
+manager.group.GroupJetCacheManager:invalidateCacheAfterMemberChange-->manager.group.GroupJetCacheManager:invalidateGroupPortraitMember
+manager.group.GroupJetCacheManager:invalidateGroupPortraitMember-->com.alicp.jetcache.Cache:remove
+manager.group.GroupJetCacheManager:invalidateCacheAfterMemberChange-->manager.group.GroupJetCacheManager:invalidateGroupMemberCount
+manager.group.GroupJetCacheManager:invalidateCacheAfterMemberChange-->infrastructure.redis.GroupRedisHandle:delGroupMemberDsCache
+infrastructure.redis.GroupRedisHandle:delGroupMemberDsCache-->infrastructure.redis.GroupRedisHandle:getGroupMemberDsCacheKey
+infrastructure.redis.GroupRedisHandle:delGroupMemberDsCache-- client-->fm.lizhi.common.datastore.redis.client.RedisClient:del:::client
+manager.group.GroupJetCacheManager:invalidateCacheAfterMemberChange-->manager.group.GroupJetCacheManager:invalidateJoinedGroupIds
+classDef annotation fill:#877BF1
+classDef client fill:#10AF17

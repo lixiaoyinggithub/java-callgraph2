@@ -1,16 +1,9 @@
 package visual;
 
-import visual.entity.Callee;
-import visual.entity.Caller;
-import visual.utils.VisualStringTools;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,7 +25,6 @@ public class MethodCallFileParserTest {
     public static void main(String[] args) {
         String path = "/Users/aly/Downloads/method_call.txt";
 
-        Neo4jCommonTools tools = new Neo4jCommonTools("neo4j+s://418f83db.databases.neo4j.io", "neo4j", "rGFLArEh_LOrG1JaRFSHW06D85bdm-ShufV7tocRvU0");
 
         int total = 0;
         AtomicInteger atomTotal = new AtomicInteger(0);

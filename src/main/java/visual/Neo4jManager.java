@@ -4,18 +4,21 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONUtil;
 import org.neo4j.driver.*;
 import visual.chart.ChartAble;
-import visual.chart.DrawRequirement;
-import visual.chart.FlowChartImpl;
+import visual.entity.Callee;
+import visual.init.MethodCallImport;
+import visual.node.Node;
 
+import java.io.BufferedReader;
 import java.io.Closeable;
+import java.io.FileReader;
 import java.util.*;
 
 
-public class Neo4jCommonTools implements Closeable {
+public class Neo4jManager implements Closeable {
 
     private final Driver driver;
 
-    public Neo4jCommonTools(String uri, String user, String password) {
+    public Neo4jManager(String uri, String user, String password) {
         driver = GraphDatabase.driver(uri, AuthTokens.basic(user, password));
     }
 
@@ -67,44 +70,92 @@ public class Neo4jCommonTools implements Closeable {
         }
     }
 
-    public String dropFlowchart(String inputName, ChartAble chartAble) {
-        chartAble.start();
 
+    public void traverByNeo4j(Node root) {
         // fullName - 节点
         Map<String, Map<String, Object>> recordMap = new HashMap<>();
-
-        recordMap.put(inputName, MapUtil.of("name", inputName));
+        String rootName = root.getName();
+        recordMap.put(rootName, MapUtil.of("name", rootName));
 
         try (Session session = driver.session()) {
-            Queue<String> queue = new LinkedList<>();
+            Queue<Node> queue = new LinkedList<>();
             Set<String> visited = new HashSet<>();
 
-            queue.add(inputName);
-            visited.add(inputName);
+            queue.add(root);
+            visited.add(rootName);
 
             while (!queue.isEmpty()) {
-                String sourceName = queue.poll();
+                Node currentNode = queue.poll();
                 String query = "MATCH (:Method { name: $name })-->(method)RETURN method";
-                Result result = session.run(query, Values.parameters("name", sourceName));
+                Result result = session.run(query, Values.parameters("name", currentNode.getName()));
+
+                List<Node> children = currentNode.getChildren();
 
                 while (result.hasNext()) {
                     Record record = result.next();
                     Map<String, Object> targetMap = record.values().get(0).asMap();
                     String name = targetMap.get("name").toString();
                     recordMap.put(name, targetMap);
+
                     if (!visited.contains(name)) {
-                        Map<String, Object> sourceMap = recordMap.get(sourceName);
-                        chartAble.draw(sourceMap, targetMap);
-                        queue.add(name);
+
+                        Node node = new Node(name, targetMap, new ArrayList<>());
+                        children.add(node);
+
+                        queue.add(node);
                         visited.add(name);
                     }
                 }
             }
         }
-        chartAble.end();
-        return chartAble.getContent();
     }
 
+
+    public void traverByMap(Node root) {
+
+
+        String rootName = root.getName();
+        Queue<Node> queue = new LinkedList<>();
+        Set<String> visited = new HashSet<>();
+
+        queue.add(root);
+        visited.add(rootName);
+
+        while (!queue.isEmpty()) {
+            Node currentNode = queue.poll();
+            List<Callee> callees = MethodCallImport.CALLER_MAP.get(currentNode.getName());
+
+            if (callees == null) {
+                continue;
+            }
+
+            List<Node> children = currentNode.getChildren();
+
+            for (Callee record : callees) {
+                String name = record.getFullName();
+                if (!visited.contains(name)) {
+                    Map<String, Object> targetMap = toMap(record);
+                    Node node = new Node(name, targetMap, new ArrayList<>());
+                    children.add(node);
+
+                    queue.add(node);
+                    visited.add(name);
+                }
+            }
+
+        }
+    }
+
+    public static Map<String, Object> toMap(Callee callee) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", callee.getFullName());
+        map.put("fullName", callee.getFullName());
+        map.put("callType", callee.getCallType());
+        map.put("methodName", callee.getMethodName());
+        map.put("cls", callee.getClassName());
+        map.put("returnType", callee.getReturnValType());
+        return map;
+    }
 
 
 }

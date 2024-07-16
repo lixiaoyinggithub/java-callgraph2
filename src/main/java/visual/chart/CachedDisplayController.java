@@ -3,6 +3,8 @@ package visual.chart;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.json.JSONUtil;
 import org.apache.commons.lang3.StringUtils;
+import visual.Starter;
+import visual.enums.CacheTypeEnum;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -15,9 +17,9 @@ import java.util.Map;
  * @author Xavier
  * @date 2024/7/5 11:37
  */
-public class CachedManager {
+public class CachedDisplayController {
 
-    private String path;
+    private String file = "method_annotation.txt";
 
     private Map<String, Integer> cacheAnnotationMap;
 
@@ -25,8 +27,7 @@ public class CachedManager {
     private List<String> redisClassNameList;
     private Map<String, Integer> commandWeight;
 
-    public CachedManager(String annotationPath) {
-        this.path = annotationPath;
+    public CachedDisplayController() {
         this.methodAnnotationMap = new HashMap<>();
         this.cacheAnnotationMap = new HashMap<>();
         this.redisClassNameList = new ArrayList<>();
@@ -39,8 +40,9 @@ public class CachedManager {
         this.commandWeight.put("smembers", 3);
         this.commandWeight.put("zrevrangeByScore", 3);
 
-        this.redisClassNameList.add("fm.lizhi.common.datastore.redis.client.RedisClient");
+        this.redisClassNameList.add("fm.lizhi.common.datastore.redis.client");
         this.redisClassNameList.add("org.redisson.api");
+        this.redisClassNameList.add("redis.clients.jedis");
 
         this.cacheAnnotationMap.put("com.alicp.jetcache.anno.CacheInvalidateContainer", 2);
         this.cacheAnnotationMap.put("fm.lizhi.common.datastore.cache.annotation.Caching", 1);
@@ -48,10 +50,15 @@ public class CachedManager {
         this.cacheAnnotationMap.put("com.alicp.jetcache.anno.Cached", 1);
         this.cacheAnnotationMap.put("fm.lizhi.common.datastore.cache.annotation.CacheEvict", 1);
         this.cacheAnnotationMap.put("com.alicp.jetcache.anno.CacheInvalidate", 1);
+
+        // 解析方法注解
+        this.init();
+        System.out.println("methodAnnotationMap:" + methodAnnotationMap.size());
     }
 
-    public void parse() {
-        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+    public void init() {
+        String methodAnnotationPath = Starter.rootPath + file;
+        try (BufferedReader br = new BufferedReader(new FileReader(methodAnnotationPath))) {
             String row;
             while ((row = br.readLine()) != null) {
                 if (StringUtils.isBlank(row)) {
@@ -59,7 +66,7 @@ public class CachedManager {
                 }
                 String[] parts = row.split("\t");
                 if (parts.length > 4) {
-                    System.err.println(row);
+                    System.err.println("methodCached:" + row);
                 }
                 Pair<String, Map<String, String>> annotationValuePair = methodAnnotationMap.get(parts[0]);
                 if (annotationValuePair == null) {
@@ -91,12 +98,13 @@ public class CachedManager {
         }
     }
 
-    public int countRedisLoad(String methodName) {
+    public CacheTypeEnum countRedisLoad(String methodName) {
         int countOfAnnotation = countByAnnotation(methodName);
-        if (countOfAnnotation == 0) {
-            return countByClassName(methodName);
+        if (countOfAnnotation > 0) {
+            return CacheTypeEnum.ANNOTATION;
+        } else {
+            return countByClassName(methodName) > 0 ? CacheTypeEnum.CLIENT : null;
         }
-        return countOfAnnotation;
     }
 
 
@@ -108,7 +116,8 @@ public class CachedManager {
      */
     private int countByClassName(String methodName) {
         for (String classKeyWork : redisClassNameList) {
-            if (methodName.contains(classKeyWork)) {
+            // todo 完善统计不同级别的调用
+            if (methodName.startsWith(classKeyWork)) {
                 if (methodName.contains(":getMapCache") || methodName.contains("getReadWriteLock")) {
                     return 2;
                 } else if (methodName.contains("getReadWriteLock")) {
@@ -129,7 +138,7 @@ public class CachedManager {
      */
     private int countByAnnotation(String methodName) {
         Pair<String, Map<String, String>> annotationPair = methodAnnotationMap.get(methodName);
-        if(annotationPair == null){
+        if (annotationPair == null) {
             return 0;
         }
         String annotationName = annotationPair.getKey();
@@ -149,10 +158,10 @@ public class CachedManager {
     }
 
     public static void main(String[] args) {
-        CachedManager cachedCachedManager = new CachedManager("/Users/aly/IdeaProjects/buz/buz-dc-core/buz-dc-core-app/target/buz-dc-core-app-1.0.123-SNAPSHOT.jar-output_javacg/method_annotation_副本.txt");
+        CachedDisplayController cachedCachedDisplayController = new CachedDisplayController();
 
-        cachedCachedManager.parse();
-        Map<String, Pair<String, Map<String, String>>> methodAnnotationMap1 = cachedCachedManager.getMethodAnnotationMap();
+        cachedCachedDisplayController.init();
+        Map<String, Pair<String, Map<String, String>>> methodAnnotationMap1 = cachedCachedDisplayController.getMethodAnnotationMap();
 
         for (Map.Entry<String, Pair<String, Map<String, String>>> stringPairEntry : methodAnnotationMap1.entrySet()) {
             System.out.println(stringPairEntry.getKey() + "\t" + JSONUtil.toJsonStr(stringPairEntry));
