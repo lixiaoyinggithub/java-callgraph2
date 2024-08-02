@@ -1,4 +1,4 @@
-package visual;
+package test.visual;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;

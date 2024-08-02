@@ -1,33 +1,20 @@
 package visual.init;
 
-import visual.Neo4jManager;
 import visual.Starter;
 import visual.entity.Callee;
 import visual.entity.Caller;
 import visual.utils.VisualStringTools;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Xavier
  * @date 2024/7/3 14:26
  */
-public class MethodCallCached {
+public class MethodRootFinder {
 
-
-    /**
-     * 解析method_call，写入数据库
-     *
-     * @throws FileNotFoundException
-     */
     public static Set<String> listRoot() {
         String path = Starter.rootPath + "method_call.txt";
 

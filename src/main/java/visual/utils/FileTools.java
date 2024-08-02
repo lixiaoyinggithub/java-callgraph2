@@ -13,6 +13,7 @@ import java.util.List;
  * @date 2024/7/10 16:08
  */
 public class FileTools {
+
     public static void writeToFile(String data, String path) {
         try {
             FileWriter fileWriter = new FileWriter(path, true);
@@ -33,9 +34,4 @@ public class FileTools {
         return classMethod.replace(":", "-") + ".md";
     }
 
-    public static void main(String[] args) {
-        writeToFile("1", "/Users/aly/Documents/call_graph3.txt");
-        writeToFile("2", "/Users/aly/Documents/call_graph3.txt");
-        writeToFile("3", "/Users/aly/Documents/call_graph3.txt");
-    }
 }

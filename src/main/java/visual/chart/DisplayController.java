@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import visual.Starter;
-import visual.Constants;
+import visual.constant.Constants;
 import visual.enums.CacheTypeEnum;
 import visual.node.Node;
 

@@ -1,16 +1,13 @@
-package visual;
+package test.visual;
 
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.json.JSONUtil;
 import org.neo4j.driver.*;
-import visual.chart.ChartAble;
 import visual.entity.Callee;
-import visual.init.MethodCallImport;
+import visual.init.MethodCallLoader;
 import visual.node.Node;
 
-import java.io.BufferedReader;
 import java.io.Closeable;
-import java.io.FileReader;
 import java.util.*;
 
 
@@ -111,51 +108,6 @@ public class Neo4jManager implements Closeable {
     }
 
 
-    public void traverByMap(Node root) {
-
-
-        String rootName = root.getName();
-        Queue<Node> queue = new LinkedList<>();
-        Set<String> visited = new HashSet<>();
-
-        queue.add(root);
-        visited.add(rootName);
-
-        while (!queue.isEmpty()) {
-            Node currentNode = queue.poll();
-            List<Callee> callees = MethodCallImport.CALLER_MAP.get(currentNode.getName());
-
-            if (callees == null) {
-                continue;
-            }
-
-            List<Node> children = currentNode.getChildren();
-
-            for (Callee record : callees) {
-                String name = record.getFullName();
-                if (!visited.contains(name)) {
-                    Map<String, Object> targetMap = toMap(record);
-                    Node node = new Node(name, targetMap, new ArrayList<>());
-                    children.add(node);
-
-                    queue.add(node);
-                    visited.add(name);
-                }
-            }
-
-        }
-    }
-
-    public static Map<String, Object> toMap(Callee callee) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("name", callee.getFullName());
-        map.put("fullName", callee.getFullName());
-        map.put("callType", callee.getCallType());
-        map.put("methodName", callee.getMethodName());
-        map.put("cls", callee.getClassName());
-        map.put("returnType", callee.getReturnValType());
-        return map;
-    }
 
 
 }
